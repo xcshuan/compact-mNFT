@@ -1,0 +1,13 @@
+[package]
+name = "compact-nft"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ckb-std = "0.7.1"
+#ckb-hash = "0.40.0"
+blake2b-ref = "0.1"
+sparse-merkle-tree = {version = "0.4.0-rc1", default_features = false}
+script-utils = {path = "../../script-utils"}
