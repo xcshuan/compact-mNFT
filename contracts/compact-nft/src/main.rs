@@ -13,6 +13,9 @@
 // define modules
 mod entry;
 mod type_id;
+mod issuer;
+mod class;
+mod nft;
 
 pub use script_utils::error;
 pub use script_utils::hash;

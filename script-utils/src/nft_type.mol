@@ -1,84 +1,81 @@
 import blockchain;
 
-vector Nfts <Bytes32>
+vector Nft_ids <Byte32>;
+
+vector Nft_Values <Bytes>;
 
 // 一次给多个用户转账
-vector Targets <Bytes32>;
+vector Targets <Byte32>;
 
 // 一次原始转账交易
 // 可支持同时转出多个所属的NFT，Nfts的数量与Targets的数量必须相同
 table RawTransferTransaction {
-  nft_ids: Nfts,  // 本交易指定的ledger cell的type_id,
-  to:      Targets, // 同时给多人转账
+  nft_ids:        Nft_ids,     // 唯一标识nft的id,
+  nft_old_values: Nft_Values,  // 本次更新的旧值
+  to:             Targets,     // 同时给多人转账
 }
 
 // 一次原始NFT分发交易
 // 支持一笔交易分发多个NFT，token_id根据顺序递增
+// 通过这个交易可以构造出新的class_value，以及一堆NFT_value
 table RawDistributeTransaction {
-    class_id: Byte32,
-    to:       Targets,
+    class_id:        Byte32,
+    class_old_value: Bytes,
+    to:              Targets,
 }
 
 // 一次原始NFT发行交易
 table RawIssueTransaction {
     total:       Uint32,
     configure:   byte,
-    to:          Bytes32,
-    name:        Bytes
-    description: Bytes 
+    to:          Byte32,
+    name:        Bytes,
+    description: Bytes,
 }
 
-vector EXTDATAS <Bytes>
+vector EXTDATAS <Bytes>;
 
 // 给某种类型的NFT增加额外数据
 // 可以批量更新，但只支持同类型
 table RawUpdateTransaction {
-    type:      byte,
-    hash_ids:  Nfts,     // 本交易指定的key,
-    ext_datas: EXTDATAS, // 每个Key的新的ext_datas项
+    typ:            byte,
+    nft_ids:        Nft_ids,    // 唯一标识nft的id,
+    nft_old_values: Nft_Values, // 本次更新的旧值
+    state:          Bytes,      // 每个key更新的state，不更新也需要填这一项
+    ext_datas:      EXTDATAS,   // 每个Key的新的ext_datas项
 }
 
 // 将某些Key value从SMT抽取出来成为Cell
 // 可以批量抽取，但只支持同类型
 // 检测到此类交易后，会去outputs里寻找是否有匹配的cell
 table RawExtractTransaction {
-    type:      byte,
-    hash_ids:  Nfts,     // 本交易指定的key,
+    typ:            byte,
+    nft_ids:        Nft_ids,       // 唯一标识nft的id,
+    nft_old_values: Nft_Values,    // 本次更新的旧值
 }
 
 // 将某些Key value从Cell中插入SMT
 // 可以批量插入，但只支持同类型
 // 检测到此类交易后，会去inputs里寻找是否有匹配的cell
 table RawInsertTransaction {
-    type:      byte,
-    hash_ids:  Nfts,     // 本交易指定的key,
+    typ:      byte,
+    nft_ids:   Nft_ids,     // 本交易指定的key,
 }
 
-table Transaction {
-    type: byte,
+table NftTransaction {
+    typ: byte,
     transaction: Bytes,
     signature: Bytes,
 }
 
 // 一系列交易
-vector TransactionVec <Transaction>;
-
-// SMT的更新项
-struct SmtUpdateItem {
-    key:       Byte32,       //本更新项的Key
-    old_value: Bytes, //本更新项的旧值
-    new_value: Bytes, //本更新项的新值
-}
+vector NftTransactionVec <NftTransaction>;
 
 // SMT的MerkleProof
 vector SmtProof <byte>;
 
-// 一系列更新项
-vector SmtUpdateItemVec <SmtUpdateItem>;
-
 // 一次更新需要的所有信息
 table SmtUpdateAction {
-    updates:   SmtUpdateItemVec,     //本次打包涉及的状态更新
     proof:     SmtProof,             //本次打包状态转换的证明
 }
 

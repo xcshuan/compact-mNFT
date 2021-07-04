@@ -1,6 +1,6 @@
-# simple-social-token
+# compact-mNFT
 
-a simple social token  for Nervos CKB.
+a compact-mNFT contract for Nervos CKB.
 
 Build contracts:
 

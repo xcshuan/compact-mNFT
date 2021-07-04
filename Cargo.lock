@@ -2071,7 +2071,10 @@ name = "script-utils"
 version = "0.1.0"
 dependencies = [
  "blake2b-ref 0.1.0",
+ "cfg-if 0.1.10",
  "ckb-std",
+ "ckb-types",
+ "molecule",
  "sparse-merkle-tree",
 ]
 

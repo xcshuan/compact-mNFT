@@ -7,10 +7,10 @@ use sparse_merkle_tree::{
 
 use super::hash::*;
 
-pub const NFT_DATA_MIN_LEN: usize = 71;
+pub const NFT_DATA_MIN_LEN: usize = 75;
 
 //in cell, owner will be in lock_script, issuer_id, class_id and token_id will be in type_args
-pub const NFT_DATA_MIN_LEN_IN_CELL: usize = 11;
+pub const NFT_DATA_MIN_LEN_IN_CELL: usize = 15;
 pub const NFT_TYPE_ARGS_LEN: usize = 28;
 
 /// NFT cell data structure
@@ -22,9 +22,10 @@ pub const NFT_TYPE_ARGS_LEN: usize = 28;
 /// 5) characteristic: [u8; 8]
 /// 6) configure: u8
 /// 7) state: u8
-/// 8) owner:[u8;32]
-/// 9) extinfo_data: <size: u16> + <vartext>
-/// The filed of 5) can be changed and it also can be missing and it will not be validated.
+/// 8) nonce: u32
+/// 9) owner:[u8;32]
+/// 10) extinfo_data: <size: u16> + <vartext>
+/// The filed of 10) can be changed and it also can be missing and it will not be validated.
 #[derive(Debug, Clone)]
 pub struct Nft {
     pub version: u8,
@@ -34,12 +35,13 @@ pub struct Nft {
     pub characteristic: [u8; 8],
     pub configure: u8,
     pub state: u8,
+    pub nonce: u32,
     pub owner: [u8; 32],
 }
 
 impl Nft {
-    pub fn from_data(data: &[u8], in_cell: bool) -> Result<Self, Error> {
-        if in_cell {
+    pub fn from_data(data: &[u8], nft_state: u8) -> Result<Self, Error> {
+        if nft_state == 0 {
             if data.len() < NFT_DATA_MIN_LEN_IN_CELL {
                 return Err(Error::NFTDataInvalid);
             }
@@ -55,6 +57,8 @@ impl Nft {
             let configure: u8 = data[9];
             let state: u8 = data[10];
 
+            let nonce = u32_from_slice(&data[11..15]);
+            
             return Ok(Nft {
                 version,
                 issuer_id: [0u8; 20],
@@ -63,6 +67,7 @@ impl Nft {
                 characteristic,
                 configure,
                 state,
+                nonce,
                 owner: [0u8; 32],
             });
         }
@@ -92,8 +97,11 @@ impl Nft {
         let configure: u8 = data[37];
         let state: u8 = data[38];
 
+        let nonce = u32_from_slice(&data[39..43]);
+
         let mut owner = [0u8;32];
-        owner.copy_from_slice(&data[39..71]);
+        owner.copy_from_slice(&data[43..75]);
+
 
         return Ok(Nft {
             version,
@@ -103,6 +111,7 @@ impl Nft {
             characteristic,
             configure,
             state,
+            nonce,
             owner,
         });
     }

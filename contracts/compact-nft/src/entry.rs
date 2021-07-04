@@ -13,10 +13,13 @@ use ckb_std::{
     ckb_types::{bytes::Bytes, prelude::*},
 };
 
-use crate::error::Error;
+use crate::{
+    error::Error,
+    hash::{new_blake2b, CKBBlake2bHasher},
+    type_id::{check_type_id, TYPE_ID_SIZE},
+};
 
 pub fn main() -> Result<(), Error> {
-    // remove below examples and write your code here
 
     let script = load_script()?;
     let args: Bytes = script.args().unpack();
