@@ -1,5 +1,5 @@
 [workspace]
-members = ["tests", "script-utils", "contracts/compact-nft"]
+members = ["tests", "script-utils","mol", "contracts/compact-nft"]
 
 [profile.release]
 overflow-checks = true

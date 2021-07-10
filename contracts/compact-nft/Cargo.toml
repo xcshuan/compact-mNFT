@@ -11,3 +11,4 @@ ckb-std = "0.7.1"
 blake2b-ref = "0.1"
 sparse-merkle-tree = {version = "0.4.0-rc1", default_features = false}
 script-utils = {path = "../../script-utils"}
+# mol = {path = "../../mol", default_features = false, features = ["no-std"]}

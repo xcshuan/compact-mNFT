@@ -1,13 +1,10 @@
 use crate::error::Error;
-use crate::helper::{parse_dyn_vec_len, u32_from_slice, DYN_MIN_LEN};
+use crate::helpers::{parse_dyn_vec_len, u32_from_slice, DYN_MIN_LEN};
+use crate::misc::new_blake2b;
 use alloc::vec::Vec;
 use core::result::Result;
-use sparse_merkle_tree::{
-    traits::{Hasher, Value},
-    H256,
-};
+use sparse_merkle_tree::{traits::Value, H256};
 
-use super::hash::*;
 
 const FIXED_LEN: usize = 66;
 
@@ -135,12 +132,11 @@ impl Class {
 
         let configure: u8 = data[33];
 
-        let mut owner = [0u8;32];
+        let mut owner = [0u8; 32];
 
-        owner.copy_from_slice(&[34..FIXED_LEN]);
+        owner.copy_from_slice(&data[34..FIXED_LEN]);
 
-        let name_len =
-            parse_dyn_vec_len(&data[FIXED_LEN..(FIXED_LEN + DYN_MIN_LEN)]);
+        let name_len = parse_dyn_vec_len(&data[FIXED_LEN..(FIXED_LEN + DYN_MIN_LEN)]);
         // DYN_MIN_LEN: the min length of description
         if data.len() < FIXED_LEN + name_len + DYN_MIN_LEN {
             return Err(Error::ClassDataInvalid);
@@ -190,6 +186,23 @@ impl Class {
     fn is_zero(&self) -> bool {
         return self.issuer_id == [0u8; 20] && self.total == 0 && self.name.len() == 0;
     }
+
+    pub fn to_h256(&self) -> H256 {
+        if self.is_zero() {
+            return H256::zero();
+        }
+        let mut buf = [0u8; 32];
+        let mut hasher = new_blake2b();
+        hasher.update(&self.version.to_le_bytes());
+        hasher.update(&self.issuer_id);
+        hasher.update(&self.class_id.to_le_bytes());
+        hasher.update(&self.total.to_le_bytes());
+        hasher.update(&self.configure.to_le_bytes());
+        hasher.update(&self.name);
+        hasher.update(&self.description);
+        hasher.finalize(&mut buf);
+        buf.into()
+    }
 }
 
 impl Value for Class {
@@ -201,7 +214,7 @@ impl Value for Class {
         let mut hasher = new_blake2b();
         hasher.update(&self.version.to_le_bytes());
         hasher.update(&self.issuer_id);
-        hasher.update(&self.class_id);
+        hasher.update(&self.class_id.to_le_bytes());
         hasher.update(&self.total.to_le_bytes());
         hasher.update(&self.configure.to_le_bytes());
         hasher.update(&self.name);

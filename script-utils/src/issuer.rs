@@ -1,5 +1,4 @@
-use crate::error::Error;
-use crate::helper::{parse_dyn_vec_len, u32_from_slice, DYN_MIN_LEN};
+use crate::{error::Error, helpers::{DYN_MIN_LEN, parse_dyn_vec_len, u32_from_slice}};
 use core::result::Result;
 
 const FIXED_LEN: usize = 41;

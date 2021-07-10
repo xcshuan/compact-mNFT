@@ -4,8 +4,9 @@ use ckb_std::{
     high_level::{load_cell_type_hash, load_script_hash, QueryIter},
     syscalls::{load_cell, load_input, SysError},
 };
+use script_utils::misc::new_blake2b;
 
-use crate::{error::Error, hash::new_blake2b};
+use crate::{error::Error};
 
 pub const TYPE_ID_SIZE: usize = 32;
 
@@ -17,7 +18,7 @@ pub fn check_type_id(type_id: [u8; 32]) -> Result<(), Error> {
     let has_second_output_type_id_cell = has_type_id_cell(1, Source::GroupOutput);
     if has_second_input_type_id_cell || has_second_output_type_id_cell {
         debug!("There are only be at most one input and at most one output type id cell");
-        return Err(Error::InvalidTypeID);
+        return Err(Error::TypeArgsInvalid);
     }
     let has_first_input_type_id_cell = has_type_id_cell(0, Source::GroupInput);
     // we already has type_id, just return OK
@@ -30,7 +31,7 @@ pub fn check_type_id(type_id: [u8; 32]) -> Result<(), Error> {
     let script_hash = load_script_hash()?;
     let output_index: u64 = QueryIter::new(load_cell_type_hash, Source::Output)
         .position(|type_hash| type_hash == Some(script_hash))
-        .ok_or(Error::InvalidTypeID)? as u64;
+        .ok_or(Error::TypeArgsInvalid)? as u64;
     // The type ID is calculated as the blake2b (with CKB's personalization) of
     // the first CellInput in current transaction, and the created output cell
     // index(in 64-bit little endian unsigned integer).
@@ -46,7 +47,7 @@ pub fn check_type_id(type_id: [u8; 32]) -> Result<(), Error> {
             "type_id: {:?}, expected_type_id: {:?}",
             type_id, expected_type_id
         );
-        return Err(Error::InvalidTypeID);
+        return Err(Error::TypeArgsInvalid);
     }
     Ok(())
 }

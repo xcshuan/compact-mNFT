@@ -7,12 +7,13 @@ vector Nft_Values <Bytes>;
 // 一次给多个用户转账
 vector Targets <Byte32>;
 
-// 一次原始转账交易
-// 可支持同时转出多个所属的NFT，Nfts的数量与Targets的数量必须相同
-table RawTransferTransaction {
-  nft_ids:        Nft_ids,     // 唯一标识nft的id,
-  nft_old_values: Nft_Values,  // 本次更新的旧值
-  to:             Targets,     // 同时给多人转账
+// 一次原始NFT发行交易
+table RawIssueTransaction {
+    total:       Uint32,
+    configure:   byte,
+    to:          Byte32,
+    name:        Bytes,
+    description: Bytes,
 }
 
 // 一次原始NFT分发交易
@@ -24,19 +25,25 @@ table RawDistributeTransaction {
     to:              Targets,
 }
 
-// 一次原始NFT发行交易
-table RawIssueTransaction {
-    total:       Uint32,
-    configure:   byte,
-    to:          Byte32,
-    name:        Bytes,
-    description: Bytes,
+// 一次原始转账交易
+// 可支持同时转出多个所属的NFT，Nfts的数量与Targets的数量必须相同
+// type:
+// 0-NFT
+// 1-Class
+table RawTransferTransaction {
+    typ:            byte,
+    nft_ids:        Nft_ids,     // 唯一标识nft的id,
+    nft_old_values: Nft_Values,  // 本次更新的旧值
+    to:             Targets,     // 同时给多人转账
 }
 
 vector EXTDATAS <Bytes>;
 
 // 给某种类型的NFT增加额外数据
 // 可以批量更新，但只支持同类型
+// type:
+// 0-NFT
+// 1-Class
 table RawUpdateTransaction {
     typ:            byte,
     nft_ids:        Nft_ids,    // 唯一标识nft的id,
@@ -48,6 +55,9 @@ table RawUpdateTransaction {
 // 将某些Key value从SMT抽取出来成为Cell
 // 可以批量抽取，但只支持同类型
 // 检测到此类交易后，会去outputs里寻找是否有匹配的cell
+// type:
+// 0-NFT
+// 1-Class
 table RawExtractTransaction {
     typ:            byte,
     nft_ids:        Nft_ids,       // 唯一标识nft的id,
@@ -57,11 +67,22 @@ table RawExtractTransaction {
 // 将某些Key value从Cell中插入SMT
 // 可以批量插入，但只支持同类型
 // 检测到此类交易后，会去inputs里寻找是否有匹配的cell
+// type:
+// 0-NFT
+// 1-Class
 table RawInsertTransaction {
     typ:      byte,
     nft_ids:   Nft_ids,     // 本交易指定的key,
 }
 
+
+// type 
+// 0-Issue
+// 1-Distribute
+// 2-tranfer
+// 3-update 
+// 4-extract 
+// 5-insert
 table NftTransaction {
     typ: byte,
     transaction: Bytes,
@@ -82,3 +103,9 @@ table SmtUpdateAction {
 
 // 在Witness的input_type内放置SmtUpdateAction
 // 在Witness的lock_type内放置TransactionVec
+// Cell version:
+// 0: issuer_cell
+// 1: class_cell
+// 2: nft_cell
+// 3: single_owner nft_cell
+// 4: multi_owner nft_cell

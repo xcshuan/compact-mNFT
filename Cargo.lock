@@ -1500,6 +1500,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mol"
+version = "0.1.0"
+dependencies = [
+ "cfg-if 0.1.10",
+ "ckb-std",
+ "ckb-types",
+ "molecule",
+]
+
+[[package]]
 name = "molecule"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2073,8 +2083,6 @@ dependencies = [
  "blake2b-ref 0.1.0",
  "cfg-if 0.1.10",
  "ckb-std",
- "ckb-types",
- "molecule",
  "sparse-merkle-tree",
 ]
 

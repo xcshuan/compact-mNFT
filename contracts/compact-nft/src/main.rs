@@ -16,9 +16,10 @@ mod type_id;
 mod issuer;
 mod class;
 mod nft;
+mod validator;
 
 pub use script_utils::error;
-pub use script_utils::hash;
+pub use script_utils::misc;
 
 use ckb_std::{
     default_alloc,

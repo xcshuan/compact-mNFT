@@ -77,10 +77,45 @@ pub fn load_output_type_args_ids(
 ) -> Vec<u32> {
     QueryIter::new(load_cell_type, Source::Output)
         .filter(|type_opt| parse_type_opt(type_opt, predicate))
-        .filter_map(|type_opt| {
-            type_opt.and_then(|type_| parse_type_args_id(type_, slice_start))
-        })
+        .filter_map(|type_opt| type_opt.and_then(|type_| parse_type_args_id(type_, slice_start)))
         .collect()
+}
+
+pub fn load_smt_cell_count_by_code_hash(
+    source: Source,
+    predicate: &dyn Fn(&[u8]) -> bool,
+) -> (i32, Vec<u8>) {
+    let mut data: Vec<u8> = Vec::default();
+    let count = QueryIter::new(load_cell_type, source)
+        .enumerate()
+        .filter(|(_, type_opt)| {
+            type_opt.as_ref().map_or(false, |type_| predicate(&type_.code_hash().as_slice()))
+        })
+        .fold(0, |acc, (index, _)| {
+            let cell_data = load_cell_data(index, source).map_or_else(|_| Vec::new(), |data| data);
+            match cell_data[0] {
+                0 | 1 | 3 | 4 => {
+                    data = cell_data;
+                    acc + 1
+                }
+                _ => acc,
+            }
+        });
+    (count, data)
+}
+
+pub fn load_cell_data_by_code_hash(
+    source: Source,
+    args: &[u8],
+    predicate: &dyn Fn(&[u8]) -> bool,
+) -> Option<Vec<u8>> {
+    QueryIter::new(load_cell_type, source)
+        .position(|type_opt| {
+            type_opt.map_or(false, |type_| {
+                predicate(&type_.code_hash().as_slice()) && type_.args().as_slice() == args
+            })
+        })
+        .map(|index| load_cell_data(index, source).map_or_else(|_| Vec::new(), |data| data))
 }
 
 pub fn parse_dyn_vec_len(data: &[u8]) -> usize {
@@ -95,4 +130,3 @@ pub fn u32_from_slice(data: &[u8]) -> u32 {
     buf.copy_from_slice(data);
     u32::from_be_bytes(buf)
 }
-
