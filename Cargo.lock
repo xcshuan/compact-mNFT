@@ -800,6 +800,7 @@ version = "0.1.0"
 dependencies = [
  "blake2b-ref 0.1.0",
  "ckb-std",
+ "mol",
  "script-utils",
  "sparse-merkle-tree",
 ]

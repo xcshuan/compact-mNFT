@@ -11,16 +11,15 @@ vector Targets <Byte32>;
 table RawIssueTransaction {
     total:       Uint32,
     configure:   byte,
-    to:          Byte32,
     name:        Bytes,
     description: Bytes,
+    to:          Byte32,
 }
 
 // 一次原始NFT分发交易
 // 支持一笔交易分发多个NFT，token_id根据顺序递增
 // 通过这个交易可以构造出新的class_value，以及一堆NFT_value
 table RawDistributeTransaction {
-    class_id:        Byte32,
     class_old_value: Bytes,
     to:              Targets,
 }
@@ -74,7 +73,6 @@ table RawInsertTransaction {
     typ:      byte,
     nft_ids:   Nft_ids,     // 本交易指定的key,
 }
-
 
 // type 
 // 0-Issue

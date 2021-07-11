@@ -7,6 +7,7 @@ pub const NFT_DATA_MIN_LEN: usize = 75;
 
 //in cell, owner will be in lock_script, issuer_id, class_id and token_id will be in type_args
 pub const NFT_DATA_MIN_LEN_IN_CELL: usize = 15;
+
 pub const NFT_TYPE_ARGS_LEN: usize = 28;
 
 /// NFT cell data structure
@@ -36,7 +37,7 @@ pub struct Nft {
 }
 
 impl Nft {
-    pub fn from_data_single_cell(data: &[u8]) -> Result<Self, Error> {
+    pub fn from_data_cell(data: &[u8]) -> Result<Self, Error> {
         if data.len() < NFT_DATA_MIN_LEN_IN_CELL {
             return Err(Error::NFTDataInvalid);
         }
@@ -111,7 +112,7 @@ impl Nft {
     pub fn from_data(data: &[u8], in_cell: bool) -> Result<Self, Error> {
         //single cell mode
         if in_cell {
-            return Self::from_data_single_cell(data);
+            return Self::from_data_cell(data);
         // leaf mode
         } else {
             return Self::from_data_leaf(data);

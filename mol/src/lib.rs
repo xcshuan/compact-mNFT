@@ -1,4 +1,8 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
 pub mod mol;
+
+pub use mol::*;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "std")] {

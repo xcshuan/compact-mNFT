@@ -14,6 +14,24 @@ pub enum Action {
     Destroy,
 }
 
+pub const ISSUER_CELL: u8 = 0;
+pub const CLASS_CELL: u8 = 1;
+pub const NFT_CELL: u8 = 2;
+pub const SINGLE_OWNER_CELL: u8 = 3;
+pub const MULTI_OWNER_CELL: u8 = 4;
+pub const NFT_SET_CELL: u8 = 5;
+
+pub const ISSUE_TRANSACTION: u8 = 0;
+pub const DISTRIBUTE_TRANSACTION: u8 = 1;
+pub const TRANSFER_TRANSACTION: u8 = 2;
+pub const UPDATE_TRANSACTION: u8 = 3;
+pub const EXTRACT_TRANSACTION: u8 = 4;
+pub const INSERT_TRANSACTION: u8 = 5;
+
+pub const CLASS_LEAF: u8 = 0;
+pub const NFT_LEAF: u8 = 1;
+pub const NFT_SET_LEAF: u8 = 2;
+
 fn load_type_args(type_: &Script) -> Bytes {
     let type_args: Bytes = type_.args().unpack();
     type_args
@@ -89,12 +107,14 @@ pub fn load_smt_cell_count_by_code_hash(
     let count = QueryIter::new(load_cell_type, source)
         .enumerate()
         .filter(|(_, type_opt)| {
-            type_opt.as_ref().map_or(false, |type_| predicate(&type_.code_hash().as_slice()))
+            type_opt
+                .as_ref()
+                .map_or(false, |type_| predicate(&type_.code_hash().as_slice()))
         })
         .fold(0, |acc, (index, _)| {
             let cell_data = load_cell_data(index, source).map_or_else(|_| Vec::new(), |data| data);
             match cell_data[0] {
-                0 | 1 | 3 | 4 => {
+                ISSUER_CELL | CLASS_CELL | SINGLE_OWNER_CELL | MULTI_OWNER_CELL => {
                     data = cell_data;
                     acc + 1
                 }

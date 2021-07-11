@@ -1,9 +1,23 @@
+use alloc::vec::Vec;
 use ckb_std::{
-    ckb_types::{bytes::Bytes, prelude::Unpack},
+    ckb_constants::Source,
+    ckb_types::{
+        bytes::Bytes,
+        packed::Byte,
+        prelude::{Entity, Unpack},
+    },
     debug,
-    high_level::load_script,
+    high_level::{load_script, load_witness_args},
 };
-use script_utils::{issuer::Issuer, misc::SMT};
+use mol::{NftTransactionVec, RawIssueTransaction};
+use script_utils::{
+    helpers::{
+        DISTRIBUTE_TRANSACTION, EXTRACT_TRANSACTION, INSERT_TRANSACTION, ISSUE_TRANSACTION,
+        TRANSFER_TRANSACTION, UPDATE_TRANSACTION,
+    },
+    issuer::Issuer,
+    misc::SMT,
+};
 
 use crate::{
     error::Error,
@@ -42,6 +56,45 @@ pub fn handle_creation_issuer(issuer: Issuer) -> Result<(), Error> {
 }
 
 pub fn handle_update_issuer(input_issuer: Issuer, output_issuer: Issuer) -> Result<(), Error> {
+    if input_issuer.version != output_issuer.version {
+        return Err(Error::ClassDataInvalid);
+    }
+    if output_issuer.set_count < input_issuer.set_count {
+        return Err(Error::IssuerSetCountError);
+    }
+    if output_issuer.class_count < input_issuer.class_count {
+        return Err(Error::IssuerClassCountError);
+    }
+
+    let witness_args = load_witness_args(0, Source::GroupInput)?;
+    let lock_type = witness_args.lock();
+    //得到交易
+    let txs = if let Some(lock_type) = lock_type.to_opt() {
+        let lock_type: Vec<u8> = lock_type.unpack();
+        NftTransactionVec::from_compatible_slice(&lock_type).unwrap()
+    } else {
+        return Err(Error::ItemMissing);
+    };
+
+    // let mut old_keys = Vec::new();
+    // let mut new_keys = Vec::new();
+
+    for tx in txs.into_iter() {
+        match <Byte as Into<u8>>::into(tx.typ()) {
+            ISSUE_TRANSACTION => {
+                let _issue_tx =
+                    RawIssueTransaction::from_compatible_slice(tx.transaction().as_slice())
+                        .unwrap();
+            }
+            DISTRIBUTE_TRANSACTION => {}
+            TRANSFER_TRANSACTION => {}
+            UPDATE_TRANSACTION => {}
+            EXTRACT_TRANSACTION => {}
+            INSERT_TRANSACTION => {}
+            _ => return Err(Error::NFTDataInvalid),
+        }
+    }
+
     Ok(())
 }
 
